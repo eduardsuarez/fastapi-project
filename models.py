@@ -1,4 +1,4 @@
-from pydantic.main import BaseModel
+from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
 class CustomerBase(SQLModel):
@@ -8,6 +8,9 @@ class CustomerBase(SQLModel):
     email : str = Field(default=None)
 
 class CustomerCreate(CustomerBase):
+    pass
+
+class CustomerUpdate(CustomerBase):
     pass
 
 class Customer(CustomerBase, table = True):
