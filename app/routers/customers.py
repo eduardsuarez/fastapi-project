@@ -1,6 +1,6 @@
 from fastapi import APIRouter, status, HTTPException
 from sqlmodel import select
-from models import Customer, CustomerCreate, CustomerUpdate
+from models import Customer, CustomerCreate, CustomerPlan, CustomerUpdate, Plan
 from db import SessionDep
 
 router = APIRouter()
@@ -45,3 +45,25 @@ async def delete_customer(customer_id: int, session: SessionDep):
 @router.get("/customers", response_model=list[Customer], tags=["customers"])
 async def get_customers(session: SessionDep):
     return session.exec(select(Customer)).all()
+
+@router.post("/customers/{customer_id}/subscribe/{plan_id}", tags=["customers"])
+async def subscribe_customer_to_plan(customer_id:int, plan_id:int, session: SessionDep):
+    customer_db = session.get(Customer, customer_id)
+    plan_db = session.get(Plan, plan_id)
+
+    if not customer_db or not plan_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer or Plan doesn't exist")
+    
+    # Crear relación
+    customer_plan_db = CustomerPlan(plan_id=plan_db.id, customer_id=customer_db.id)
+    session.add(customer_plan_db)
+    session.commit()
+    session.refresh(customer_plan_db)
+    return customer_plan_db
+
+@router.get("/customers/{customer_id}/plans", tags=["customers"])
+async def subscribe_customer_to_plan(customer_id:int, session: SessionDep):
+    customer_db = session.get(Customer, customer_id)
+    if not customer_db:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer doesn't exist")
+    return customer_db.plans
